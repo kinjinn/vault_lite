@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Response
 from fastapi.responses import FileResponse
 from pathlib import Path
 import uuid, mimetypes, json
@@ -40,12 +40,13 @@ async def upload(file: UploadFile = File(...)):
 
 @app.get("/list_files", response_model=list[FileMeta])
 async def list_files():
-    items = []
+    items: list[FileMeta] = []
     for meta_file in DATA_DIR.glob("*.json"):
         try:
             items.append(FileMeta.parse_file(meta_file))
         except Exception:
             continue
+    items.sort(key=lambda x: x.upload_at, reverse=True)
     return items
 
 @app.get("/file/{file_name}")
@@ -56,3 +57,15 @@ def get_file(file_name: str):
     ctype = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
     return FileResponse(path=file_path, media_type=ctype, filename=file_name)
 
+
+@app.delete("/file/{file_name}")
+def delete_file(fid: str):
+    meta_path = DATA_DIR / f"{fid}.json"
+    if not meta_path.exists():
+        raise HTTPException(status_code=404, detail="File metadata not found")
+    meta = FileMeta.parse_file(meta_path)
+    file_path = DATA_DIR / meta.stored_as
+    file_path.unlink(missing_ok=True)
+    meta_path.unlink(missing_ok=True)
+
+    return Response(status_code=204)
