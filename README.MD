@@ -37,22 +37,25 @@ POST /upload
     Uploads file
     Returns:
         {
-        "id": "uuid",
-        "original_name": "resume.pdf",
-        "stored_as": "uuid.pdf",
-        "size": 233112
+            "id": "c71a7f812a0d4d53a6e1c0e1e5a12345",
+            "original_name": "resume.pdf",
+            "stored_as": "c71a7f812a0d4d53a6e1c0e1e5a12345.pdf",
+            "size": 233112,
+            "uploaded_at": "2025-09-16T15:24:00Z"
         }
 GET /list_files
     Lists all uploaded files with UUID + original filename.
 GET /file/{stored as}
     Download file by its stored UUID filename
 
-How it works
-    Files are stored under data/ directory
-    Each file is saved with a UUID to prevent collisions
-    A small .json metadatafile is stored alongside each upload
-        Has original filenames, uuid filenames, and file size
-    mimetypes ensure downloades include the correct Content-Type header
+
+How It Works
+Files are stored under the data/ directory.
+Each file is renamed with a UUID to prevent filename collisions.
+A .json metadata file is created alongside each upload.
+    Contains id (UUID), original_name, stored_as, size, and uploaded_at.
+    Metadata follows the FileMeta Pydantic model for validation and consistency.
+Mimetypes ensures downloads include the correct Content-Type header.
 
 
 Notes:

@@ -2,8 +2,9 @@ from typing import Annotated
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from pathlib import Path
-import os
 import uuid, mimetypes, json
+from app.models import FileMeta
+import datetime
 
 app = FastAPI(title="Vault Lite", version="0.1.0")
 
@@ -27,25 +28,25 @@ async def upload(file: UploadFile = File(...)):
                 break
             buffer.write(chunk)
 
-    meta = {
-        "id": fid,
-        "original_name": file.filename,
-        "stored_as": dest.name,
-        "size": dest.stat().st_size
-    }
-    (DATA_DIR / f"{fid}.json").write_text(json.dumps(meta), encoding="utf-8")
-    return {"saved as": dest.name, "size": meta["size"]}
+    meta = FileMeta(
+        id=fid,
+        original_name=file.filename,
+        stored_as=dest.name,
+        size=dest.stat().st_size,
+        upload_at=datetime.utcnow()
+    )
+    (DATA_DIR / f"{fid}.json").write_text(meta.json())
+    return meta
 
-@app.get("/list_files")
+@app.get("/list_files", response_model=list[FileMeta])
 async def list_files():
     items = []
     for meta_file in DATA_DIR.glob("*.json"):
-        try: 
-            data = json.loads(meta_file.read_text(encoding="utf-8"))
-            items.append(data)
+        try:
+            items.append(FileMeta.parse_file(meta_file))
         except Exception:
             continue
-    return {"files": items}
+    return items
 
 @app.get("/file/{file_name}")
 def get_file(file_name: str):
