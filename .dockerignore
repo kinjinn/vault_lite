@@ -1,0 +1,31 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Git / VCS
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+.dockerignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python packaging / build
+*.egg-info
+*.egg
+dist/
+build/
+
+# IDE settings
+.vscode/
+.idea/
